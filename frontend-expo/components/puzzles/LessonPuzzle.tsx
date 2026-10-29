@@ -246,6 +246,14 @@ export default function LessonPuzzle({ length, page, pageBack, pageForward, page
     const handleUndo = () => {
         if (chessboardRef.current) {
             if (retryFen) {
+                // Wrong moves only reach the displayed board; the engine is still at the valid position.
+                chessboardRef.current.board.resetBoard(chess.fen());
+                setLastFEN(chess.fen());
+                setRetryFen(null);
+                setHint(null);
+                setIsHintExpandable(false);
+                setExpanded(false);
+                setUndosUsed((count) => count + 1);
                 return;
             }
 
@@ -292,19 +300,7 @@ export default function LessonPuzzle({ length, page, pageBack, pageForward, page
         }
     };
 
-    const handleTryAgain = () => {
-        if (!retryFen || !chessboardRef.current?.board) {
-            return;
-        }
 
-        chess.load(retryFen);
-        chessboardRef.current.board.resetBoard(retryFen);
-        setLastFEN(retryFen);
-        setRetryFen(null);
-        setHint(null);
-        setIsHintExpandable(false);
-        setExpanded(false);
-    };
 
     const handleMove = ({ state }: { state: { fen: string } }) => {
         const previousFen = lastFEN;
@@ -422,7 +418,7 @@ export default function LessonPuzzle({ length, page, pageBack, pageForward, page
 
                 <WrongMovePrompt
                     visible={Boolean(retryFen)}
-                    onTryAgain={handleTryAgain}
+                    onTryAgain={handleUndo}
                     isTablet={isTablet}
                 />
             </View>

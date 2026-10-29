@@ -315,6 +315,14 @@ export default function DemoPuzzle() {
         }
 
         if (retryFen) {
+            // Wrong moves only reach the displayed board; preserve the engine's undo history.
+            chessboardRef.current.board.resetBoard(chess.fen());
+            setLastFEN(chess.fen());
+            setRetryFen(null);
+            setHint(null);
+            setIsHintExpandable(false);
+            setExpanded(false);
+            setUndosUsed((count) => count + 1);
             return;
         }
 
@@ -415,19 +423,7 @@ export default function DemoPuzzle() {
         }, 700);
     };
 
-    const handleTryAgain = () => {
-        if (!retryFen || !chessboardRef.current?.board) {
-            return;
-        }
 
-        chess.load(retryFen);
-        chessboardRef.current.board.resetBoard(retryFen);
-        setLastFEN(retryFen);
-        setRetryFen(null);
-        setHint(null);
-        setIsHintExpandable(false);
-        setExpanded(false);
-    };
 
     const gestureEnabled = Boolean(puzzleReady && !retryFen && lastFEN && turn && getTurnFromFEN(lastFEN) !== turn);
     const bestMoveLabel = moves[2 * moveNumber - 1] ?? '...';
@@ -453,7 +449,7 @@ export default function DemoPuzzle() {
                     onMove={handleMove}
                     gestureEnabled={gestureEnabled}
                 />
-                <WrongMovePrompt visible={Boolean(retryFen)} onTryAgain={handleTryAgain} isTablet={isTablet} />
+                <WrongMovePrompt visible={Boolean(retryFen)} onTryAgain={handleUndo} isTablet={isTablet} />
             </View>
 
             <Animated.View style={localStyles.hintContainer}>
